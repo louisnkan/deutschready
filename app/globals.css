@@ -1,0 +1,150 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: #1B4332;
+    --primary-light: #2D6A4F;
+    --accent: #FFB703;
+    --accent-soft: #FFF3CD;
+    --surface: #F8F9FA;
+    --surface-dark: #212529;
+    --text-primary: #1A1A2E;
+    --text-muted: #6C757D;
+    --success: #40916C;
+    --error: #D62828;
+    --border: #DEE2E6;
+  }
+
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary);
+    background-color: var(--surface);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Fraunces', serif;
+    line-height: 1.2;
+    color: var(--text-primary);
+  }
+
+  code, pre, kbd {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Mobile tap highlight removal */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Smooth focus rings for accessibility */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  /* Reusable button base */
+  .btn-primary {
+    @apply bg-primary text-white font-body font-medium 
+           px-6 py-3 rounded-xl transition-all duration-200
+           hover:bg-primary-light active:scale-95
+           focus-visible:ring-2 focus-visible:ring-accent;
+  }
+
+  .btn-accent {
+    @apply bg-accent text-text-primary font-body font-medium
+           px-6 py-3 rounded-xl transition-all duration-200
+           hover:brightness-95 active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-primary font-body font-medium
+           px-6 py-3 rounded-xl border border-border
+           transition-all duration-200 hover:bg-accent-soft
+           active:scale-95;
+  }
+
+  /* Card base */
+  .card {
+    @apply bg-white rounded-2xl shadow-card p-6
+           border border-border transition-shadow duration-200
+           hover:shadow-card-hover;
+  }
+
+  /* Input base */
+  .input-base {
+    @apply w-full px-4 py-3 rounded-xl border border-border
+           bg-white text-text-primary font-body
+           transition-all duration-200
+           focus:outline-none focus:border-primary
+           focus:ring-2 focus:ring-primary/10
+           placeholder:text-text-muted;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full
+           text-sm font-medium font-body;
+  }
+
+  .badge-success {
+    @apply badge bg-success/10 text-success;
+  }
+
+  .badge-error {
+    @apply badge bg-error/10 text-error;
+  }
+
+  .badge-accent {
+    @apply badge bg-accent-soft text-text-primary;
+  }
+
+  /* German text display */
+  .german-text {
+    @apply font-mono text-primary-dark bg-accent-soft
+           px-2 py-0.5 rounded-md text-sm;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    @apply w-full h-2 bg-border rounded-full overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-primary rounded-full transition-all duration-500;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .slide-in {
+    animation: slideUp 0.4s ease-out;
+  }
+}
