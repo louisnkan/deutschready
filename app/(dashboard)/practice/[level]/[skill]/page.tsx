@@ -253,7 +253,8 @@ export default function PracticePage() {
   if (!currentQuestion) return null
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="min-h-screen bg-surface flex flex-col
+                max-w-2xl mx-auto md:border-x md:border-border">
       {/* Header */}
       <div className="bg-white border-b border-border px-4 py-3
                       flex items-center justify-between sticky
