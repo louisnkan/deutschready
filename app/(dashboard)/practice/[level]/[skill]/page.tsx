@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { usePracticeSession } from '@/hooks/usePracticeSession'
 import { QuestionCard } from '@/components/practice/QuestionCard'
+import { ShareCard } from '@/components/practice/ShareCard'
 import type { Level, Skill } from '@/types'
 
 const SKILL_LABELS: Record<string, string> = {
@@ -59,21 +60,15 @@ export default function PracticePage() {
     submitSession,
   } = usePracticeSession()
 
-  // Auto-start session on mount
   useEffect(() => {
     startSession(level, skill)
   }, [level, skill])
 
-  // Handle answer selection — reveal correct answer
   function handleSelectAnswer(answer: 'a' | 'b' | 'c' | 'd') {
     if (isRevealed) return
     selectAnswer(answer)
-
-    // Reveal after selection
     setTimeout(() => {
       setIsRevealed(true)
-      // Fetch correct answer from results after reveal
-      // For now we reveal the UI state — server validates on submit
     }, 300)
   }
 
@@ -139,17 +134,23 @@ export default function PracticePage() {
     return (
       <div className="min-h-screen bg-surface px-4 py-8">
         <div className="max-w-md mx-auto">
+
           {/* Score card */}
           <div className="card text-center mb-6 slide-in">
             <p className="text-5xl mb-4">
-              {percentage >= 80 ? '🎉' : percentage >= 60 ? '👍' : '💪'}
+              {percentage >= 80
+                ? '🎉'
+                : percentage >= 60
+                ? '👍'
+                : '💪'}
             </p>
             <h2 className="font-display text-3xl font-bold
                            text-text-primary mb-1">
-              {percentage}%
+              {Math.round(percentage)}%
             </h2>
             <p className="font-body text-text-muted text-sm mb-4">
-              {results.correct_answers} of {results.total_questions} correct
+              {results.correct_answers} of {results.total_questions}{' '}
+              correct
             </p>
             <span className={`badge text-sm ${
               isPassing ? 'badge-success' : 'badge-error'
@@ -158,7 +159,7 @@ export default function PracticePage() {
             </span>
           </div>
 
-          {/* Time taken */}
+          {/* Time + level + skill row */}
           <div className="card flex items-center justify-between
                           mb-6 py-4">
             <div className="text-center flex-1">
@@ -220,17 +221,15 @@ export default function PracticePage() {
           </div>
 
           {/* Share card */}
-<ShareCard
-  results={results}
-  level={level}
-  skill={skill}
-  timeSeconds={elapsedSeconds}
-/>
+          <ShareCard
+            results={results}
+            level={level}
+            skill={skill}
+            timeSeconds={elapsedSeconds}
+          />
 
-{/* Actions */}
-<div className="space-y-3">
           {/* Actions */}
-          <div className="space-y-3">
+          <div className="space-y-3 mt-6">
             <button
               onClick={() => {
                 setIsRevealed(false)
@@ -259,12 +258,12 @@ export default function PracticePage() {
     )
   }
 
-  // Active session state
+  // Active session
   if (!currentQuestion) return null
 
   return (
     <div className="min-h-screen bg-surface flex flex-col
-                max-w-2xl mx-auto md:border-x md:border-border">
+                    max-w-2xl mx-auto md:border-x md:border-border">
       {/* Header */}
       <div className="bg-white border-b border-border px-4 py-3
                       flex items-center justify-between sticky
@@ -275,8 +274,8 @@ export default function PracticePage() {
                      hover:text-primary transition-colors
                      flex items-center gap-1"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
-               stroke="currentColor">
+          <svg className="w-4 h-4" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round"
                   strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
