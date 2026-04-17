@@ -219,6 +219,16 @@ export default function PracticePage() {
             </div>
           </div>
 
+          {/* Share card */}
+<ShareCard
+  results={results}
+  level={level}
+  skill={skill}
+  timeSeconds={elapsedSeconds}
+/>
+
+{/* Actions */}
+<div className="space-y-3">
           {/* Actions */}
           <div className="space-y-3">
             <button
