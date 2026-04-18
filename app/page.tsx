@@ -163,7 +163,6 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        {/* Social proof */}
         <div className="flex items-center justify-center gap-6
                         flex-wrap">
           {[
@@ -289,7 +288,7 @@ export default function LandingPage() {
                               border border-white/20">
                 <p className="font-body text-white/90 text-sm
                                leading-relaxed mb-4">
-                  "{t.text}"
+                  &ldquo;{t.text}&rdquo;
                 </p>
                 <div className="flex items-center
                                 justify-between">
@@ -328,7 +327,6 @@ export default function LandingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2
                         gap-6 max-w-2xl mx-auto">
-          {/* Free */}
           <div className="card border-2 border-border">
             <p className="font-display text-xl font-bold
                           text-text-primary mb-1">
@@ -359,7 +357,6 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Premium */}
           <div className="card border-2 border-primary
                           relative overflow-hidden">
             <div className="absolute top-4 right-4">
@@ -417,8 +414,7 @@ export default function LandingPage() {
 
           <div className="space-y-4">
             {FAQS.map((faq) => (
-              <div key={faq.q}
-                   className="card">
+              <div key={faq.q} className="card">
                 <h3 className="font-display text-base font-bold
                                text-text-primary mb-2">
                   {faq.q}
@@ -463,36 +459,33 @@ export default function LandingPage() {
               Deutsch<span className="text-accent">Ready</span>
             </span>
 
-            <div className="flex items-center gap-6">
-              <Link href="/login"
-                    className="font-body text-sm text-text-muted
-                               hover:text-primary transition-colors">
-                Sign in
-              </Link>
-              <Link href="/signup"
-                    className="font-body text-sm text-text-muted
-                               hover:text-primary transition-colors">
-                Sign up
-              </Link>
+            <div className="flex items-center gap-6 flex-wrap
+                            justify-center">
               <Link href="/blog"
-      className="font-body text-sm text-text-muted
-                 hover:text-primary transition-colors">
-  Blog
-</Link>
-<Link href="/terms"
-      className="font-body text-sm text-text-muted
-                 hover:text-primary transition-colors">
-  Terms
-</Link>
+                    className="font-body text-sm text-text-muted
+                               hover:text-primary transition-colors">
+                Blog
+              </Link>
+              <Link href="/about"
+                    className="font-body text-sm text-text-muted
+                               hover:text-primary transition-colors">
+                About
+              </Link>
+              <Link href="/contact"
+                    className="font-body text-sm text-text-muted
+                               hover:text-primary transition-colors">
+                Contact
+              </Link>
               <Link href="/terms"
                     className="font-body text-sm text-text-muted
                                hover:text-primary transition-colors">
                 Terms
-              <Link href="/about"
-      className="font-body text-sm text-text-muted
-                 hover:text-primary transition-colors">
-  About
-</Link>
+              </Link>
+              <Link href="/privacy"
+                    className="font-body text-sm text-text-muted
+                               hover:text-primary transition-colors">
+                Privacy
+              </Link>
             </div>
           </div>
 
