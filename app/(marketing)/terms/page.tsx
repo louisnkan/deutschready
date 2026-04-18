@@ -92,7 +92,10 @@ export default function TermsPage() {
           </h2>
           <p className="text-sm text-text-muted">
             Questions about these terms? Contact us at
-            hello@deutschready.xyz
+            <a href="/contact"
+   className="text-primary hover:underline">
+  contact us here
+</a>
           </p>
         </section>
       </div>
