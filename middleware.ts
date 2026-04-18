@@ -39,6 +39,8 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // IMPORTANT: Do not add any logic between createServerClient
+  // and supabase.auth.getUser()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -48,9 +50,13 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(path)
   )
 
+  // Only redirect if truly no session
   if (isProtectedPath && !user) {
     const redirectUrl = new URL('/login', request.url)
-    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    redirectUrl.searchParams.set(
+      'redirectTo',
+      request.nextUrl.pathname
+    )
     return NextResponse.redirect(redirectUrl)
   }
 
@@ -59,8 +65,12 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(path)
   )
 
+  // Only redirect logged-in users away from auth pages
+  // if they have a confirmed session
   if (isAuthPath && user) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(
+      new URL('/dashboard', request.url)
+    )
   }
 
   return supabaseResponse
