@@ -91,7 +91,7 @@ export default function PrivacyPage() {
           </h2>
           <p className="text-sm text-text-muted">
             Privacy questions? Contact us at
-            louisnkan21@gmail.com
+            hello@deutschready.xyz
           </p>
         </section>
       </div>
