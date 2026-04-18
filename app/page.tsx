@@ -474,6 +474,16 @@ export default function LandingPage() {
                                hover:text-primary transition-colors">
                 Sign up
               </Link>
+              <Link href="/blog"
+      className="font-body text-sm text-text-muted
+                 hover:text-primary transition-colors">
+  Blog
+</Link>
+<Link href="/terms"
+      className="font-body text-sm text-text-muted
+                 hover:text-primary transition-colors">
+  Terms
+</Link>
               <Link href="/terms"
                     className="font-body text-sm text-text-muted
                                hover:text-primary transition-colors">
