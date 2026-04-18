@@ -92,7 +92,7 @@ export default function TermsPage() {
           </h2>
           <p className="text-sm text-text-muted">
             Questions about these terms? Contact us at
-            louisnkan21@gmail.com
+            hello@deutschready.xyz
           </p>
         </section>
       </div>
