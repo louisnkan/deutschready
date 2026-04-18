@@ -478,12 +478,11 @@ export default function LandingPage() {
                     className="font-body text-sm text-text-muted
                                hover:text-primary transition-colors">
                 Terms
-              </Link>
-              <Link href="/privacy"
-                    className="font-body text-sm text-text-muted
-                               hover:text-primary transition-colors">
-                Privacy
-              </Link>
+              <Link href="/about"
+      className="font-body text-sm text-text-muted
+                 hover:text-primary transition-colors">
+  About
+</Link>
             </div>
           </div>
 
