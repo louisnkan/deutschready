@@ -2,54 +2,24 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { sanitizeEmail } from '@/lib/utils/sanitize'
 import Link from 'next/link'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleEmailLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
-
-    const cleanEmail = sanitizeEmail(email)
-
-    if (!cleanEmail || !password) {
-      setError('Please fill in all fields.')
-      setLoading(false)
-      return
-    }
-
-    const supabase = createClient()
-    const { data, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
-      })
-
-    if (authError) {
+  // Check for error in URL
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    const urlError = params.get('error')
+    if (urlError === 'invalid_credentials' && !error) {
       setError('Invalid email or password. Please try again.')
-      setLoading(false)
-      return
-    }
-
-    if (data.session) {
-      window.location.href = '/dashboard'
-    } else {
-      setError('Login failed. Please try again.')
-      setLoading(false)
     }
   }
 
   async function handleGoogleLogin() {
     setError(null)
     setGoogleLoading(true)
-
     const supabase = createClient()
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -57,7 +27,6 @@ export default function LoginPage() {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     })
-
     if (authError) {
       setError('Google sign in failed. Please try again.')
       setGoogleLoading(false)
@@ -84,12 +53,12 @@ export default function LoginPage() {
 
       <button
         onClick={handleGoogleLogin}
-        disabled={googleLoading || loading}
+        disabled={googleLoading}
         className="w-full flex items-center justify-center
                    gap-3 border border-border rounded-xl
                    px-4 py-3 mb-4 font-body text-text-primary
-                   text-sm font-medium transition-all
-                   duration-200 hover:bg-surface active:scale-95
+                   text-sm font-medium transition-all duration-200
+                   hover:bg-surface active:scale-95
                    disabled:opacity-50"
       >
         {googleLoading ? (
@@ -113,22 +82,20 @@ export default function LoginPage() {
 
       <div className="flex items-center gap-3 mb-4">
         <div className="flex-1 h-px bg-border" />
-        <span className="text-text-muted text-xs font-body">
-          or
-        </span>
+        <span className="text-text-muted text-xs font-body">or</span>
         <div className="flex-1 h-px bg-border" />
       </div>
 
-      <form onSubmit={handleEmailLogin} className="space-y-4">
+      <form action="/api/auth/login" method="POST"
+            className="space-y-4">
         <div>
-          <label className="block text-sm font-medium
-                            font-body text-text-primary mb-1.5">
+          <label className="block text-sm font-medium font-body
+                            text-text-primary mb-1.5">
             Email address
           </label>
           <input
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            name="email"
             placeholder="you@example.com"
             className="input-base"
             autoComplete="email"
@@ -137,25 +104,21 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <div className="flex items-center justify-between
-                          mb-1.5">
-            <label className="block text-sm font-medium
-                              font-body text-text-primary">
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-sm font-medium font-body
+                              text-text-primary">
               Password
             </label>
-            <Link
-              href="/forgot-password"
-              className="text-xs font-body text-primary
-                         hover:text-primary-light
-                         transition-colors"
-            >
+            <Link href="/forgot-password"
+                  className="text-xs font-body text-primary
+                             hover:text-primary-light
+                             transition-colors">
               Forgot password?
             </Link>
           </div>
           <input
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            name="password"
             placeholder="••••••••"
             className="input-base"
             autoComplete="current-password"
@@ -165,32 +128,18 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          disabled={loading || googleLoading}
-          className="btn-primary w-full disabled:opacity-50
-                     disabled:cursor-not-allowed"
+          className="btn-primary w-full"
         >
-          {loading ? (
-            <span className="flex items-center
-                             justify-center gap-2">
-              <span className="w-4 h-4 border-2
-                               border-white/40 border-t-white
-                               rounded-full animate-spin" />
-              Signing in...
-            </span>
-          ) : (
-            'Sign in'
-          )}
+          Sign in
         </button>
       </form>
 
       <p className="text-center text-sm font-body
                     text-text-muted mt-6">
         No account yet?{' '}
-        <Link
-          href="/signup"
-          className="text-primary font-medium
-                     hover:text-primary-light transition-colors"
-        >
+        <Link href="/signup"
+              className="text-primary font-medium
+                         hover:text-primary-light transition-colors">
           Create one free
         </Link>
       </p>
