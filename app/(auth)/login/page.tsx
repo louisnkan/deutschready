@@ -20,52 +20,39 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleEmailLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+async function handleEmailLogin(e: React.FormEvent) {
+  e.preventDefault()
+  setError(null)
+  setLoading(true)
 
-    const cleanEmail = sanitizeEmail(email)
+  const cleanEmail = sanitizeEmail(email)
 
-    if (!cleanEmail || !password) {
-      setError('Please fill in all fields.')
-      setLoading(false)
-      return
-    }
-
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password,
-    })
-
-    if (authError) {
-      setError('Invalid email or password. Please try again.')
-      setLoading(false)
-      return
-    }
-
-    router.push('/dashboard')
-    router.refresh()
+  if (!cleanEmail || !password) {
+    setError('Please fill in all fields.')
+    setLoading(false)
+    return
   }
 
-  async function handleGoogleLogin() {
-    setError(null)
-    setGoogleLoading(true)
+  const supabase = createClient()
+  const { data, error: authError } = await supabase.auth.signInWithPassword({
+    email: cleanEmail,
+    password,
+  })
 
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-
-    if (authError) {
-      setError('Google sign in failed. Please try again.')
-      setGoogleLoading(false)
-    }
+  if (authError) {
+    setError('Invalid email or password. Please try again.')
+    setLoading(false)
+    return
   }
+
+  if (data.session) {
+    // Force hard navigation to ensure cookies are set
+    window.location.href = '/dashboard'
+  } else {
+    setError('Login failed. Please try again.')
+    setLoading(false)
+  }
+}
 
   return (
     <div className="animate-in">
