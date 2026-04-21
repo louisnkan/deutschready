@@ -46,10 +46,10 @@ function getScoreBadge(score: number): string {
 }
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+const supabase = await createClient()
+const { data: { session } } = await supabase.auth.getSession()
+if (!session) redirect('/login')
+const user = session.user
 
   // Fetch profile and progress in parallel
   const [profileResult, progressResult, sessionsResult] =
