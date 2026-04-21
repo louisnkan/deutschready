@@ -1,25 +1,67 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { sanitizeEmail } from '@/lib/utils/sanitize'
 import Link from 'next/link'
 
 export default function LoginPage() {
-  const [googleLoading, setGoogleLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setGoogleLoading] = useState(false)
+  const [googleLoading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Check for error in URL
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const urlError = params.get('error')
-    if (urlError === 'invalid_credentials' && !error) {
+    if (params.get('error') === 'invalid_credentials') {
       setError('Invalid email or password. Please try again.')
+    }
+  }, [])
+
+  async function handleEmailLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setGoogleLoading(true)
+
+    const cleanEmail = sanitizeEmail(email)
+
+    if (!cleanEmail || !password) {
+      setError('Please fill in all fields.')
+      setGoogleLoading(false)
+      return
+    }
+
+    try {
+      const supabase = createClient()
+      const { data, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        })
+
+      if (authError) {
+        setError('Invalid email or password. Please try again.')
+        setGoogleLoading(false)
+        return
+      }
+
+      if (data?.session) {
+        window.location.replace('/dashboard')
+      } else {
+        setError('Login failed. Please try again.')
+        setGoogleLoading(false)
+      }
+    } catch {
+      setError('Something went wrong. Please try again.')
+      setGoogleLoading(false)
     }
   }
 
   async function handleGoogleLogin() {
     setError(null)
-    setGoogleLoading(true)
+    setLoading(true)
+
     const supabase = createClient()
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -27,9 +69,10 @@ export default function LoginPage() {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     })
+
     if (authError) {
       setError('Google sign in failed. Please try again.')
-      setGoogleLoading(false)
+      setLoading(false)
     }
   }
 
@@ -53,7 +96,7 @@ export default function LoginPage() {
 
       <button
         onClick={handleGoogleLogin}
-        disabled={googleLoading}
+        disabled={googleLoading || loading}
         className="w-full flex items-center justify-center
                    gap-3 border border-border rounded-xl
                    px-4 py-3 mb-4 font-body text-text-primary
@@ -86,8 +129,7 @@ export default function LoginPage() {
         <div className="flex-1 h-px bg-border" />
       </div>
 
-      <form action="https://www.deutschready.xyz/api/auth/login" method="POST"
-            className="space-y-4">
+      <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium font-body
                             text-text-primary mb-1.5">
@@ -95,11 +137,12 @@ export default function LoginPage() {
           </label>
           <input
             type="email"
-            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onBlur={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             className="input-base"
             autoComplete="email"
-            required
           />
         </div>
 
@@ -118,21 +161,33 @@ export default function LoginPage() {
           </div>
           <input
             type="password"
-            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onBlur={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             className="input-base"
             autoComplete="current-password"
-            required
           />
         </div>
 
         <button
-          type="submit"
-          className="btn-primary w-full"
+          onClick={handleEmailLogin}
+          disabled={loading || googleLoading}
+          className="btn-primary w-full disabled:opacity-50
+                     disabled:cursor-not-allowed"
         >
-          Sign in
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/40
+                               border-t-white rounded-full
+                               animate-spin" />
+              Signing in...
+            </span>
+          ) : (
+            'Sign in'
+          )}
         </button>
-      </form>
+      </div>
 
       <p className="text-center text-sm font-body
                     text-text-muted mt-6">
