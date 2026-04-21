@@ -86,7 +86,7 @@ export default function LoginPage() {
         <div className="flex-1 h-px bg-border" />
       </div>
 
-      <form action="/api/auth/login" method="POST"
+      <form action="https://www.deutschready.xyz/api/auth/login" method="POST"
             className="space-y-4">
         <div>
           <label className="block text-sm font-medium font-body
