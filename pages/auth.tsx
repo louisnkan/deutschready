@@ -27,10 +27,10 @@ export default function AuthPage() {
   const handleSendOtp = async () => {
     setError('')
     setLoading(true)
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true }
-    })
+   const { error } = await supabase.auth.signInWithOtp({
+  email,
+  options: { shouldCreateUser: true, emailRedirectTo: undefined }
+})
     setLoading(false)
     if (error) {
       setError(error.message)
