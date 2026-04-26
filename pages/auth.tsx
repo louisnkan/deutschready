@@ -27,15 +27,12 @@ export default function AuthPage() {
   const handleSendOtp = async () => {
     setError('')
     setLoading(true)
-   const { error } = await supabase.auth.signInWithOtp({
-  email,
-  options: { shouldCreateUser: true, emailRedirectTo: undefined }
-})
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true, emailRedirectTo: undefined }
+    })
     setLoading(false)
-    if (error) {
-      setError(error.message)
-      return
-    }
+    if (error) { setError(error.message); return }
     setStep('otp')
     setResendTimer(60)
     setMessage(`OTP sent to ${email}`)
@@ -50,10 +47,7 @@ export default function AuthPage() {
       type: 'email'
     })
     setLoading(false)
-    if (error) {
-      setError(error.message)
-      return
-    }
+    if (error) { setError(error.message); return }
     router.push('/dashboard')
   }
 
@@ -72,7 +66,7 @@ export default function AuthPage() {
         )}
 
         {message && (
-          <div className="bg-green-900/40 border border-green-500 text-green-300 text-sm px-4 py-3 rounded-lg mb-4">
+          <div className="bg-emerald-900/40 border border-emerald-500 text-emerald-300 text-sm px-4 py-3 rounded-lg mb-4">
             {message}
           </div>
         )}
@@ -84,7 +78,7 @@ export default function AuthPage() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 mb-4"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-400 mb-4"
             />
             <button
               onClick={handleSendOtp}
@@ -102,26 +96,21 @@ export default function AuthPage() {
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               maxLength={8}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 mb-4 tracking-widest text-center text-lg"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-400 mb-4 tracking-widest text-center text-lg"
             />
             <button
               onClick={handleVerifyOtp}
               disabled={loading || otp.length !== 8}
-              className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-lg hover:bg-yellow-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-emerald-400 text-black font-semibold py-3 rounded-lg hover:bg-emerald-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Verifying...' : 'Verify OTP'}
             </button>
 
             <div className="text-center mt-4">
               {resendTimer > 0 ? (
-                <p className="text-gray-500 text-sm">
-                  Resend OTP in {resendTimer}s
-                </p>
+                <p className="text-gray-500 text-sm">Resend OTP in {resendTimer}s</p>
               ) : (
-                <button
-                  onClick={handleSendOtp}
-                  className="text-emerald-400 text-sm hover:underline"
-                >
+                <button onClick={handleSendOtp} className="text-emerald-400 text-sm hover:underline">
                   Resend OTP
                 </button>
               )}
