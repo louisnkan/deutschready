@@ -81,9 +81,9 @@ export default function Dashboard({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-xl font-bold">
-              Hey, {displayName} 👋
-            </h1>
+            <h1 className="text-xl font-bold capitalize">
+  Hey, {displayName.toLowerCase()} 👋
+</h1>
             <p className="text-gray-500 text-sm">A1 · German Exam Prep</p>
           </div>
           <button
