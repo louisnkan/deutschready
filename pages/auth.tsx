@@ -89,7 +89,7 @@ export default function AuthPage() {
             <button
               onClick={handleSendOtp}
               disabled={loading || !email}
-              className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-lg hover:bg-yellow-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-emerald-400 text-black font-semibold py-3 rounded-lg hover:bg-emerald-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Sending...' : 'Send OTP'}
             </button>
@@ -120,7 +120,7 @@ export default function AuthPage() {
               ) : (
                 <button
                   onClick={handleSendOtp}
-                  className="text-yellow-400 text-sm hover:underline"
+                  className="text-emerald-400 text-sm hover:underline"
                 >
                   Resend OTP
                 </button>
