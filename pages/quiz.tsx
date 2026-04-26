@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { GetServerSideProps } from 'next'
 import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
@@ -30,25 +30,37 @@ const SKILL_LABELS: Record<string, string> = {
   grammatik: 'Grammatik',
   lesen: 'Lesen',
   hoeren: 'Hören',
-  schreiben: 'Schreiben',
-  sprechen: 'Sprechen',
+}
+
+const SKILL_ICONS: Record<string, string> = {
+  grammatik: '📝',
+  lesen: '📖',
+  hoeren: '🎧',
+}
+
+const SKILL_DESC: Record<string, string> = {
+  grammatik: 'Grammar rules and sentence structure',
+  lesen: 'Reading comprehension and vocabulary',
+  hoeren: 'Listening scenarios and dialogue',
 }
 
 export default function QuizPage() {
   const router = useRouter()
-  const { level = 'a1', skill } = router.query as { level: string; skill: string }
+  const { skill: querySkill } = router.query as { skill: string }
 
   const [phase, setPhase] = useState<'select' | 'loading' | 'quiz' | 'results'>('select')
   const [questions, setQuestions] = useState<ClientQuestion[]>([])
   const [sessionId, setSessionId] = useState('')
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [revealAnswer, setRevealAnswer] = useState(false)
   const [answers, setAnswers] = useState<{ question_id: string; user_answer: string }[]>([])
   const [results, setResults] = useState<QuizResult[]>([])
   const [score, setScore] = useState(0)
   const [error, setError] = useState('')
-  const [selectedSkill, setSelectedSkill] = useState(skill || '')
+  const [selectedSkill, setSelectedSkill] = useState(querySkill || '')
   const [submitting, setSubmitting] = useState(false)
+  const [runningCorrect, setRunningCorrect] = useState(0)
 
   const skills = ['grammatik', 'lesen', 'hoeren']
 
@@ -62,16 +74,14 @@ export default function QuizPage() {
         body: JSON.stringify({ level: 'a1', skill: chosenSkill }),
       })
       const data = await res.json()
-      if (!res.ok) {
-        setError(data.error || 'Failed to start session')
-        setPhase('select')
-        return
-      }
+      if (!res.ok) { setError(data.error || 'Failed to start session'); setPhase('select'); return }
       setQuestions(data.questions)
       setSessionId(data.session_id)
       setCurrentIndex(0)
       setAnswers([])
       setSelectedAnswer(null)
+      setRevealAnswer(false)
+      setRunningCorrect(0)
       setPhase('quiz')
     } catch {
       setError('Network error. Please try again.')
@@ -82,6 +92,7 @@ export default function QuizPage() {
   const handleAnswer = (key: string) => {
     if (selectedAnswer) return
     setSelectedAnswer(key)
+    setRevealAnswer(true)
   }
 
   const handleNext = () => {
@@ -95,6 +106,7 @@ export default function QuizPage() {
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex(currentIndex + 1)
       setSelectedAnswer(null)
+      setRevealAnswer(false)
     } else {
       completeSession(updated)
     }
@@ -114,11 +126,7 @@ export default function QuizPage() {
         }),
       })
       const data = await res.json()
-      if (!res.ok) {
-        setError(data.error || 'Failed to submit answers')
-        setSubmitting(false)
-        return
-      }
+      if (!res.ok) { setError(data.error || 'Failed to submit'); setSubmitting(false); return }
       setResults(data.results)
       setScore(data.score_percentage)
       setPhase('results')
@@ -129,45 +137,46 @@ export default function QuizPage() {
   }
 
   const currentQuestion = questions[currentIndex]
-  const options = currentQuestion
-    ? [
-        { key: 'a', text: currentQuestion.option_a },
-        { key: 'b', text: currentQuestion.option_b },
-        { key: 'c', text: currentQuestion.option_c },
-        { key: 'd', text: currentQuestion.option_d },
-      ]
-    : []
+  const options = currentQuestion ? [
+    { key: 'a', text: currentQuestion.option_a },
+    { key: 'b', text: currentQuestion.option_b },
+    { key: 'c', text: currentQuestion.option_c },
+    { key: 'd', text: currentQuestion.option_d },
+  ] : []
 
-  // SKILL SELECT PHASE
+  // SKILL SELECT
   if (phase === 'select') {
     return (
       <main className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-4">
-        <Link href="/dashboard" className="text-gray-500 text-sm mb-8 hover:text-gray-300">
-          ← Back to Dashboard
-        </Link>
-        <h1 className="text-2xl font-bold mb-2">Choose a Skill</h1>
-        <p className="text-gray-400 text-sm mb-8">Level: A1</p>
-        {error && (
-          <div className="bg-red-900/40 border border-red-500 text-red-300 text-sm px-4 py-3 rounded-lg mb-4 w-full max-w-sm">
-            {error}
+        <div className="w-full max-w-sm">
+          <Link href="/dashboard" className="text-gray-500 text-sm mb-8 block hover:text-gray-300">
+            ← Back to Dashboard
+          </Link>
+          <h1 className="text-2xl font-bold mb-1">Choose a Skill</h1>
+          <p className="text-gray-400 text-sm mb-8">Level A1 · 20 questions</p>
+          {error && (
+            <div className="bg-red-900/40 border border-red-500 text-red-300 text-sm px-4 py-3 rounded-lg mb-4">
+              {error}
+            </div>
+          )}
+          <div className="space-y-3">
+            {skills.map((s) => (
+              <button
+                key={s}
+                onClick={() => { setSelectedSkill(s); startSession(s) }}
+                className="w-full bg-gray-900 hover:bg-emerald-400 hover:text-black border border-gray-700 hover:border-emerald-400 text-white rounded-2xl px-4 py-4 text-left transition"
+              >
+                <div className="font-semibold">{SKILL_ICONS[s]} {SKILL_LABELS[s]}</div>
+                <div className="text-xs text-gray-500 mt-0.5 group-hover:text-black">{SKILL_DESC[s]}</div>
+              </button>
+            ))}
           </div>
-        )}
-        <div className="w-full max-w-sm space-y-3">
-          {skills.map((s) => (
-            <button
-              key={s}
-              onClick={() => { setSelectedSkill(s); startSession(s) }}
-              className="w-full bg-gray-800 hover:bg-yellow-400 hover:text-black border border-gray-700 text-white font-semibold py-4 rounded-xl transition"
-            >
-              {SKILL_LABELS[s]}
-            </button>
-          ))}
         </div>
       </main>
     )
   }
 
-  // LOADING PHASE
+  // LOADING
   if (phase === 'loading') {
     return (
       <main className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
@@ -176,45 +185,48 @@ export default function QuizPage() {
     )
   }
 
-  // QUIZ PHASE
+  // QUIZ
   if (phase === 'quiz' && currentQuestion) {
     return (
       <main className="min-h-screen bg-gray-950 text-white flex flex-col px-4 py-8">
         <div className="max-w-lg mx-auto w-full">
-          {/* Progress */}
-          <div className="flex items-center justify-between mb-6">
-            <span className="text-gray-500 text-sm">
-              {currentIndex + 1} / {questions.length}
-            </span>
-            <span className="text-yellow-400 text-sm font-medium">
-              {SKILL_LABELS[selectedSkill]} · A1
+
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-gray-500 text-sm">{currentIndex + 1} / {questions.length}</span>
+            <span className="text-emerald-400 text-sm font-medium">
+              {SKILL_ICONS[selectedSkill]} {SKILL_LABELS[selectedSkill]} · A1
             </span>
           </div>
 
-          {/* Progress bar */}
           <div className="w-full bg-gray-800 rounded-full h-1.5 mb-8">
             <div
-              className="bg-yellow-400 h-1.5 rounded-full transition-all"
+              className="bg-emerald-400 h-1.5 rounded-full transition-all"
               style={{ width: `${((currentIndex) / questions.length) * 100}%` }}
             />
           </div>
 
-          {/* Question */}
-          <p className="text-lg font-medium mb-8 leading-relaxed">
+          <p className="text-lg font-medium mb-6 leading-relaxed">
             {currentQuestion.question_text}
           </p>
 
-          {/* Options */}
-          <div className="space-y-3 mb-8">
+          <div className="space-y-3 mb-6">
             {options.map((opt) => {
-              let style = 'bg-gray-800 border-gray-700 text-white hover:border-yellow-400'
-              if (selectedAnswer === opt.key) {
+              let style = 'bg-gray-900 border-gray-700 text-white'
+
+              if (revealAnswer) {
+                if (opt.key === selectedAnswer) {
+                  // We don't know correct answer client-side — show neutral selected
+                  style = 'bg-emerald-400 border-emerald-400 text-black'
+                }
+              } else if (selectedAnswer === opt.key) {
                 style = 'bg-emerald-400 border-emerald-400 text-black'
               }
+
               return (
                 <button
                   key={opt.key}
                   onClick={() => handleAnswer(opt.key)}
+                  disabled={!!selectedAnswer}
                   className={`w-full text-left border rounded-xl px-4 py-4 font-medium transition ${style}`}
                 >
                   <span className="opacity-60 mr-3">{opt.key.toUpperCase()}.</span>
@@ -224,24 +236,28 @@ export default function QuizPage() {
             })}
           </div>
 
-          {/* Next button */}
+          {/* Immediate feedback after selecting */}
+          {revealAnswer && currentQuestion.explanation && (
+            <div className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 mb-6">
+              <p className="text-xs text-gray-500 mb-1">Explanation</p>
+              <p className="text-sm text-gray-300">{currentQuestion.explanation}</p>
+            </div>
+          )}
+
           <button
             onClick={handleNext}
             disabled={!selectedAnswer || submitting}
-            className="w-full bg-yellow-400 text-black font-bold py-4 rounded-xl hover:bg-yellow-300 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-emerald-400 text-black font-bold py-4 rounded-xl hover:bg-emerald-300 transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {submitting
-              ? 'Submitting...'
-              : currentIndex + 1 === questions.length
-              ? 'Finish Quiz'
-              : 'Next Question →'}
+            {submitting ? 'Submitting...' : currentIndex + 1 === questions.length ? 'Finish Quiz' : 'Next Question →'}
           </button>
+
         </div>
       </main>
     )
   }
 
-  // RESULTS PHASE
+  // RESULTS
   if (phase === 'results') {
     const correct = results.filter((r) => r.is_correct).length
     return (
@@ -249,25 +265,26 @@ export default function QuizPage() {
         <div className="max-w-lg mx-auto w-full">
           <h1 className="text-2xl font-bold text-center mb-1">Session Complete</h1>
           <p className="text-gray-400 text-center text-sm mb-8">
-            {SKILL_LABELS[selectedSkill]} · A1
+            {SKILL_ICONS[selectedSkill]} {SKILL_LABELS[selectedSkill]} · A1
           </p>
 
-          {/* Score */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center mb-8">
-            <p className="text-5xl font-bold text-yellow-400 mb-1">{score}%</p>
+            <p className="text-5xl font-bold text-emerald-400 mb-1">{score}%</p>
             <p className="text-gray-400 text-sm">{correct} of {results.length} correct</p>
+            <p className="text-xs text-gray-600 mt-2">
+              {score >= 80 ? '🏆 Excellent work!' : score >= 60 ? '💪 Good progress!' : '📚 Keep practising!'}
+            </p>
           </div>
 
-          {/* Review */}
-          <div className="space-y-4 mb-8">
+          <div className="space-y-3 mb-8">
             {results.map((r, i) => (
               <div
                 key={r.question_id}
-                className={`rounded-xl border p-4 ${r.is_correct ? 'border-green-700 bg-green-900/20' : 'border-red-700 bg-red-900/20'}`}
+                className={`rounded-xl border p-4 ${r.is_correct ? 'border-emerald-700 bg-emerald-900/20' : 'border-red-700 bg-red-900/20'}`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-gray-500">Q{i + 1}</span>
-                  <span className={`text-xs font-bold ${r.is_correct ? 'text-green-400' : 'text-red-400'}`}>
+                  <span className={`text-xs font-bold ${r.is_correct ? 'text-emerald-400' : 'text-red-400'}`}>
                     {r.is_correct ? '✓ Correct' : `✗ Correct: ${r.correct_answer.toUpperCase()}`}
                   </span>
                 </div>
@@ -276,23 +293,14 @@ export default function QuizPage() {
             ))}
           </div>
 
-          {/* Actions */}
           <div className="space-y-3">
             <button
-              onClick={() => {
-                setPhase('select')
-                setAnswers([])
-                setResults([])
-                setSelectedAnswer(null)
-              }}
-              className="w-full bg-yellow-400 text-black font-bold py-4 rounded-xl hover:bg-yellow-300 transition"
+              onClick={() => { setPhase('select'); setAnswers([]); setResults([]); setSelectedAnswer(null); setRevealAnswer(false) }}
+              className="w-full bg-emerald-400 text-black font-bold py-4 rounded-2xl hover:bg-emerald-300 transition"
             >
               Practice Again
             </button>
-            <Link
-              href="/dashboard"
-              className="block w-full text-center text-gray-400 py-3 hover:text-white transition"
-            >
+            <Link href="/dashboard" className="block w-full text-center text-gray-400 py-3 hover:text-white transition">
               Back to Dashboard
             </Link>
           </div>
