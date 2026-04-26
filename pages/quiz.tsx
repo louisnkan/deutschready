@@ -209,7 +209,7 @@ export default function QuizPage() {
             {options.map((opt) => {
               let style = 'bg-gray-800 border-gray-700 text-white hover:border-yellow-400'
               if (selectedAnswer === opt.key) {
-                style = 'bg-yellow-400 border-yellow-400 text-black'
+                style = 'bg-emerald-400 border-emerald-400 text-black'
               }
               return (
                 <button
