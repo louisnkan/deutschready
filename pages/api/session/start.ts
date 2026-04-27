@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const validLevels = ['a1', 'a2', 'b1', 'b2']
 
   if (!validSkills.includes(skill) || !validLevels.includes(level)) {
-    return res.status(400).json({ error: 'Invalid skill or level' })
+  return res.status(400).json({ error: 'Invalid skill or level' })
   }
 
   // Rate limiting — max 10 session starts per hour per user
@@ -59,11 +59,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .eq('skill', skill)
     .eq('is_active', true)
     .order('difficulty', { ascending: true })
+    .limit(60)
     .limit(20)
 
   if (qError || !questions || questions.length === 0) {
     return res.status(500).json({ error: 'Failed to fetch questions' })
   }
+  // Shuffle and take 20 — different set each session
+const shuffled = questions
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 20)
 
   // Create practice session record
   const { data: sessionRecord, error: sError } = await supabase
@@ -72,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       user_id: session.user.id,
       level,
       skill,
-      total_questions: questions.length,
+      total_questions: shuffled.length,
       correct_answers: 0,
       score_percentage: 0,
     })
@@ -87,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60')
 
   return res.status(200).json({
-    session_id: sessionRecord.id,
-    questions,
-  })
+  session_id: sessionRecord.id,
+  questions: shuffled,
+})
 }
