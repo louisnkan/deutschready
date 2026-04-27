@@ -22,7 +22,7 @@ type LastSession = {
 
 type Props = {
   email: string
-  fullName: string | null
+  firstName: string
   streakDays: number
   skillProgress: SkillProgress[]
   lastSession: LastSession | null
@@ -45,7 +45,7 @@ const ALL_SKILLS = ['grammatik', 'lesen', 'hoeren']
 
 export default function Dashboard({
   email,
-  fullName,
+  firstName,
   streakDays,
   skillProgress,
   lastSession,
@@ -59,10 +59,7 @@ export default function Dashboard({
     router.push('/auth')
   }
 
-  // Build full skill map including unpracticed skills at 0
-  const skillMap = Object.fromEntries(
-    skillProgress.map((s) => [s.skill, s])
-  )
+  const skillMap = Object.fromEntries(skillProgress.map((s) => [s.skill, s]))
 
   const allSkillData = ALL_SKILLS.map((skill) => ({
     skill,
@@ -72,8 +69,6 @@ export default function Dashboard({
     last_practiced_at: skillMap[skill]?.last_practiced_at ?? null,
   }))
 
-  const displayName = fullName || email.split('@')[0]
-
   return (
     <main className="min-h-screen bg-gray-950 text-white px-4 py-8">
       <div className="max-w-lg mx-auto">
@@ -81,9 +76,9 @@ export default function Dashboard({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-xl font-bold capitalize">
-  Hey, {displayName.toLowerCase()} 👋
-</h1>
+            <h1 className="text-xl font-bold">
+              Hey, {firstName} 👋
+            </h1>
             <p className="text-gray-500 text-sm">A1 · German Exam Prep</p>
           </div>
           <button
@@ -94,17 +89,28 @@ export default function Dashboard({
           </button>
         </div>
 
-        {/* Stats row */}
+        {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-8">
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
             <p className="text-2xl font-bold text-emerald-400">{streakDays}</p>
-            <p className="text-gray-500 text-xs mt-1">Day streak 🔥</p>
+            <p className="text-gray-500 text-xs mt-1">
+              {streakDays === 0 ? 'Start your streak 🔥' : `Day streak 🔥`}
+            </p>
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
             <p className="text-2xl font-bold text-emerald-400">{totalSessions}</p>
             <p className="text-gray-500 text-xs mt-1">Sessions done</p>
           </div>
         </div>
+
+        {/* Streak milestone */}
+        {streakDays >= 3 && (
+          <div className="bg-emerald-900/20 border border-emerald-700 rounded-2xl p-4 mb-8 text-center">
+            <p className="text-emerald-400 font-semibold text-sm">
+              {streakDays >= 7 ? '🏆 7-day streak! You\'re unstoppable.' : `🔥 ${streakDays}-day streak! Keep it up.`}
+            </p>
+          </div>
+        )}
 
         {/* Last session */}
         {lastSession && (
@@ -126,8 +132,8 @@ export default function Dashboard({
           </div>
         )}
 
-        {/* Skill progress */}
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+        {/* Progress */}
+        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
           Your Progress
         </h2>
 
@@ -137,10 +143,7 @@ export default function Dashboard({
               ? Math.round((s.questions_correct / s.questions_attempted) * 100)
               : 0
             return (
-              <div
-                key={s.skill}
-                className="bg-gray-900 border border-gray-800 rounded-2xl p-4"
-              >
+              <div key={s.skill} className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span>{SKILL_ICONS[s.skill]}</span>
@@ -150,7 +153,6 @@ export default function Dashboard({
                     {s.best_score > 0 ? `Best: ${Math.round(s.best_score)}%` : 'Not started'}
                   </span>
                 </div>
-                {/* Progress bar */}
                 <div className="w-full bg-gray-800 rounded-full h-1.5 mb-2">
                   <div
                     className="bg-emerald-400 h-1.5 rounded-full transition-all"
@@ -166,12 +168,11 @@ export default function Dashboard({
           })}
         </div>
 
-        {/* Start practice CTA */}
         <Link
           href="/quiz"
           className="block w-full bg-emerald-400 text-black font-bold py-4 rounded-2xl text-center hover:bg-emerald-300 transition text-lg"
         >
-          Start Practicing →
+          Start Practising →
         </Link>
 
       </div>
@@ -188,13 +189,48 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   }
 
   const userId = session.user.id
+  const today = new Date().toISOString().split('T')[0]
 
   // Fetch profile
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, streak_days')
+    .select('full_name, streak_days, last_practice_date')
     .eq('id', userId)
     .single()
+
+  // Streak logic
+  let streakDays = profile?.streak_days ?? 0
+  const lastDate = profile?.last_practice_date
+
+  if (lastDate) {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayStr = yesterday.toISOString().split('T')[0]
+
+    if (lastDate === today) {
+      // Already practiced today — streak unchanged
+    } else if (lastDate === yesterdayStr) {
+      // Practiced yesterday — increment streak
+      streakDays = streakDays + 1
+      await supabase
+        .from('profiles')
+        .update({ streak_days: streakDays, last_practice_date: today })
+        .eq('id', userId)
+    } else {
+      // Gap — reset streak
+      streakDays = 0
+      await supabase
+        .from('profiles')
+        .update({ streak_days: 0, last_practice_date: null })
+        .eq('id', userId)
+    }
+  }
+
+  // Extract first name
+  const fullName = profile?.full_name ?? ''
+  const firstName = fullName
+    ? fullName.split(' ')[0].charAt(0).toUpperCase() + fullName.split(' ')[0].slice(1).toLowerCase()
+    : session.user.email?.split('@')[0] ?? 'there'
 
   // Fetch skill progress
   const { data: skillProgress } = await supabase
@@ -203,7 +239,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     .eq('user_id', userId)
     .eq('level', 'a1')
 
-  // Fetch last completed session
+  // Fetch last session
   const { data: sessions } = await supabase
     .from('practice_sessions')
     .select('skill, score_percentage, correct_answers, total_questions, completed_at')
@@ -212,7 +248,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     .order('completed_at', { ascending: false })
     .limit(1)
 
-  // Fetch total session count
+  // Fetch total sessions
   const { count: totalSessions } = await supabase
     .from('practice_sessions')
     .select('*', { count: 'exact', head: true })
@@ -222,8 +258,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   return {
     props: {
       email: session.user.email ?? '',
-      fullName: profile?.full_name ?? null,
-      streakDays: profile?.streak_days ?? 0,
+      firstName,
+      streakDays,
       skillProgress: skillProgress ?? [],
       lastSession: sessions?.[0] ?? null,
       totalSessions: totalSessions ?? 0,
