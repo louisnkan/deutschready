@@ -60,7 +60,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .eq('is_active', true)
     .order('difficulty', { ascending: true })
     .limit(60)
-    .limit(20)
 
   if (qError || !questions || questions.length === 0) {
     return res.status(500).json({ error: 'Failed to fetch questions' })
