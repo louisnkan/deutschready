@@ -1,3 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* Landing / marketing colors */
+  --color-bg: #F8F9FA;
+  --color-forest: #1B4332;
+  --color-amber: #FFB703;
+
+  /* App interior colors */
+  --color-app-bg: #0F1117;
+  --color-app-surface: #1A1D27;
+  --color-app-green: #40916C;
+  --color-app-text: #E8EAED;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.font-fraunces {
+  font-family: 'Fraunces', serif;
+}
