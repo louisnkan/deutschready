@@ -2,6 +2,61 @@ import Link from 'next/link'
 import { GetServerSideProps } from 'next'
 import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import Logo from '../components/Logo'
+function FAQAccordion() {
+const [open, setOpen] = useState<number | null>(null)
+
+  const items = [
+    {
+      q: 'Is DeutschReady suitable for complete beginners?',
+      a: 'Yes. All current questions are A1 level — the very start of German. No prior knowledge needed.',
+    },
+    {
+      q: 'Which exams does DeutschReady prepare for?',
+      a: 'TELC A1 and Goethe-Zertifikat A1. Both share the same CEFR A1 standard. Our question bank covers all tested skills for both.',
+    },
+    {
+      q: 'Why is the price in Naira?',
+      a: 'We built this for Nigerians. Pricing in Naira means no conversion surprises. Students in Ghana, Kenya, and internationally can also use the platform.',
+    },
+    {
+      q: 'When will A2, B1, and B2 levels be available?',
+      a: 'A2 is planned within 60 days of V1 launch. Premium subscribers get early access when each level drops.',
+    },
+    {
+      q: 'How is this different from Duolingo?',
+      a: 'DeutschReady is built for exam preparation, not general language learning. Every question is modelled on the actual TELC and Goethe exam format.',
+    },
+  ]
+
+  return (
+    <div className="space-y-2">
+      {items.map((item, i) => (
+        <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <button
+            className="w-full text-left px-5 py-4 flex items-center justify-between gap-3"
+            onClick={() => setOpen(open === i ? null : i)}
+          >
+            <span className="font-semibold text-sm" style={{ color: '#1B4332' }}>{item.q}</span>
+            <span
+              className="text-lg font-bold flex-shrink-0 transition-transform"
+              style={{
+                color: '#1B4332',
+                transform: open === i ? 'rotate(45deg)' : 'rotate(0deg)',
+              }}
+            >
+              +
+            </span>
+          </button>
+          {open === i && (
+            <div className="px-5 pb-4">
+              <p className="text-sm text-gray-500 leading-relaxed">{item.a}</p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function Home() {
   return (
