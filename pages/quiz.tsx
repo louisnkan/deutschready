@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { GetServerSideProps } from 'next'
 import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
+import Logo from '../components/Logo'
 
 type ClientQuestion = {
   id: string
@@ -48,7 +49,8 @@ export default function QuizPage() {
   const router = useRouter()
   const { skill: querySkill } = router.query as { skill: string }
 
-  const [phase, setPhase] = useState<'select' | 'loading' | 'quiz' | 'results'>('select')
+  const [phase, setPhase] = useState<'select' | 'loading' | 'quiz' | 'results' | 'exit_confirm'>('select')
+  const [prevPhase, setPrevPhase] = useState<'quiz'>('quiz')
   const [questions, setQuestions] = useState<ClientQuestion[]>([])
   const [sessionId, setSessionId] = useState('')
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -60,7 +62,6 @@ export default function QuizPage() {
   const [error, setError] = useState('')
   const [selectedSkill, setSelectedSkill] = useState(querySkill || '')
   const [submitting, setSubmitting] = useState(false)
-  const [runningCorrect, setRunningCorrect] = useState(0)
 
   const skills = ['grammatik', 'lesen', 'hoeren']
 
@@ -74,14 +75,17 @@ export default function QuizPage() {
         body: JSON.stringify({ level: 'a1', skill: chosenSkill }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error || 'Failed to start session'); setPhase('select'); return }
+      if (!res.ok) {
+        setError(data.error || 'Failed to start session')
+        setPhase('select')
+        return
+      }
       setQuestions(data.questions)
       setSessionId(data.session_id)
       setCurrentIndex(0)
       setAnswers([])
       setSelectedAnswer(null)
       setRevealAnswer(false)
-      setRunningCorrect(0)
       setPhase('quiz')
     } catch {
       setError('Network error. Please try again.')
@@ -102,7 +106,6 @@ export default function QuizPage() {
       user_answer: selectedAnswer,
     }]
     setAnswers(updated)
-
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex(currentIndex + 1)
       setSelectedAnswer(null)
@@ -110,6 +113,16 @@ export default function QuizPage() {
     } else {
       completeSession(updated)
     }
+  }
+
+  const handleExitRequest = () => {
+    setPrevPhase('quiz')
+    setPhase('exit_confirm')
+  }
+
+  const handleExitConfirm = () => {
+    // Orphaned session row stays with completed_at = null — acceptable, cleaned in V2
+    router.push('/dashboard')
   }
 
   const completeSession = async (finalAnswers: { question_id: string; user_answer: string }[]) => {
@@ -126,7 +139,11 @@ export default function QuizPage() {
         }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error || 'Failed to submit'); setSubmitting(false); return }
+      if (!res.ok) {
+        setError(data.error || 'Failed to submit')
+        setSubmitting(false)
+        return
+      }
       setResults(data.results)
       setScore(data.score_percentage)
       setPhase('results')
@@ -144,32 +161,83 @@ export default function QuizPage() {
     { key: 'd', text: currentQuestion.option_d },
   ] : []
 
+  const appBg = '#0F1117'
+  const surface = '#1A1D27'
+  const border = '#2D3748'
+  const textPrimary = '#E8EAED'
+  const textMuted = '#6B7280'
+  const green = '#40916C'
+  const amber = '#FFB703'
+
+  // EXIT CONFIRM
+  if (phase === 'exit_confirm') {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center px-4" style={{ backgroundColor: appBg }}>
+        <div className="w-full max-w-sm text-center">
+          <p className="text-4xl mb-4">⚠️</p>
+          <h2 className="font-fraunces text-2xl font-black mb-2" style={{ color: textPrimary }}>
+            Exit session?
+          </h2>
+          <p className="text-sm mb-8" style={{ color: textMuted }}>
+            Your progress won't be saved. You've answered {answers.length} of {questions.length} questions.
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => setPhase('quiz')}
+              className="w-full font-bold py-4 rounded-2xl transition"
+              style={{ backgroundColor: green, color: '#fff' }}
+            >
+              Continue session
+            </button>
+            <button
+              onClick={handleExitConfirm}
+              className="w-full font-semibold py-4 rounded-2xl border transition"
+              style={{ borderColor: border, color: textMuted }}
+            >
+              Exit without saving
+            </button>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   // SKILL SELECT
   if (phase === 'select') {
     return (
-      <main className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-sm">
-          <Link href="/dashboard" className="text-gray-500 text-sm mb-8 block hover:text-gray-300">
-            ← Back to Dashboard
+      <main className="min-h-screen flex flex-col" style={{ backgroundColor: appBg }}>
+        <nav className="flex items-center justify-between px-4 py-4 border-b" style={{ borderColor: surface }}>
+          <Logo size="md" href="/" />
+          <Link href="/dashboard" className="text-xs font-medium" style={{ color: textMuted }}>
+            ← Dashboard
           </Link>
-          <h1 className="text-2xl font-bold mb-1">Choose a Skill</h1>
-          <p className="text-gray-400 text-sm mb-8">Level A1 · 20 questions</p>
-          {error && (
-            <div className="bg-red-900/40 border border-red-500 text-red-300 text-sm px-4 py-3 rounded-lg mb-4">
-              {error}
+        </nav>
+        <div className="flex-1 flex flex-col items-center justify-center px-4">
+          <div className="w-full max-w-sm">
+            <h1 className="font-fraunces text-2xl font-black mb-1" style={{ color: textPrimary }}>
+              Choose a Skill
+            </h1>
+            <p className="text-sm mb-8" style={{ color: textMuted }}>Level A1 · 20 questions</p>
+            {error && (
+              <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm px-4 py-3 rounded-xl mb-4">
+                {error}
+              </div>
+            )}
+            <div className="space-y-3">
+              {skills.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { setSelectedSkill(s); startSession(s) }}
+                  className="w-full rounded-2xl px-4 py-4 text-left transition border hover:border-opacity-100"
+                  style={{ backgroundColor: surface, borderColor: border, color: textPrimary }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = green)}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = border)}
+                >
+                  <div className="font-semibold">{SKILL_ICONS[s]} {SKILL_LABELS[s]}</div>
+                  <div className="text-xs mt-0.5" style={{ color: textMuted }}>{SKILL_DESC[s]}</div>
+                </button>
+              ))}
             </div>
-          )}
-          <div className="space-y-3">
-            {skills.map((s) => (
-              <button
-                key={s}
-                onClick={() => { setSelectedSkill(s); startSession(s) }}
-                className="w-full bg-gray-900 hover:bg-emerald-400 hover:text-black border border-gray-700 hover:border-emerald-400 text-white rounded-2xl px-4 py-4 text-left transition"
-              >
-                <div className="font-semibold">{SKILL_ICONS[s]} {SKILL_LABELS[s]}</div>
-                <div className="text-xs text-gray-500 mt-0.5 group-hover:text-black">{SKILL_DESC[s]}</div>
-              </button>
-            ))}
           </div>
         </div>
       </main>
@@ -179,8 +247,8 @@ export default function QuizPage() {
   // LOADING
   if (phase === 'loading') {
     return (
-      <main className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        <p className="text-gray-400">Loading questions...</p>
+      <main className="min-h-screen flex items-center justify-center" style={{ backgroundColor: appBg }}>
+        <p style={{ color: textMuted }}>Loading questions...</p>
       </main>
     )
   }
@@ -188,68 +256,88 @@ export default function QuizPage() {
   // QUIZ
   if (phase === 'quiz' && currentQuestion) {
     return (
-      <main className="min-h-screen bg-gray-950 text-white flex flex-col px-4 py-8">
-        <div className="max-w-lg mx-auto w-full">
+      <main className="min-h-screen flex flex-col" style={{ backgroundColor: appBg, color: textPrimary }}>
+        <div className="max-w-lg mx-auto w-full px-4 py-6">
 
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-gray-500 text-sm">{currentIndex + 1} / {questions.length}</span>
-            <span className="text-emerald-400 text-sm font-medium">
-              {SKILL_ICONS[selectedSkill]} {SKILL_LABELS[selectedSkill]} · A1
+          {/* Header with exit */}
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={handleExitRequest}
+              className="text-xs font-medium px-3 py-1.5 rounded-lg border transition"
+              style={{ borderColor: border, color: textMuted }}
+            >
+              ✕ Exit
+            </button>
+            <span className="text-sm" style={{ color: textMuted }}>
+              {currentIndex + 1} / {questions.length}
+            </span>
+            <span className="text-sm font-medium" style={{ color: green }}>
+              {SKILL_ICONS[selectedSkill]} {SKILL_LABELS[selectedSkill]}
             </span>
           </div>
 
-          <div className="w-full bg-gray-800 rounded-full h-1.5 mb-8">
+          {/* Progress bar */}
+          <div className="w-full rounded-full h-1.5 mb-8" style={{ backgroundColor: surface }}>
             <div
-              className="bg-emerald-400 h-1.5 rounded-full transition-all"
-              style={{ width: `${((currentIndex) / questions.length) * 100}%` }}
+              className="h-1.5 rounded-full transition-all"
+              style={{
+                width: `${(currentIndex / questions.length) * 100}%`,
+                backgroundColor: green,
+              }}
             />
           </div>
 
+          {/* Question */}
           <p className="text-lg font-medium mb-6 leading-relaxed">
             {currentQuestion.question_text}
           </p>
 
+          {/* Options */}
           <div className="space-y-3 mb-6">
             {options.map((opt) => {
-              let style = 'bg-gray-900 border-gray-700 text-white'
-
-              if (revealAnswer) {
-                if (opt.key === selectedAnswer) {
-                  // We don't know correct answer client-side — show neutral selected
-                  style = 'bg-emerald-400 border-emerald-400 text-black'
-                }
-              } else if (selectedAnswer === opt.key) {
-                style = 'bg-emerald-400 border-emerald-400 text-black'
-              }
-
+              const isSelected = selectedAnswer === opt.key
               return (
                 <button
                   key={opt.key}
                   onClick={() => handleAnswer(opt.key)}
                   disabled={!!selectedAnswer}
-                  className={`w-full text-left border rounded-xl px-4 py-4 font-medium transition ${style}`}
+                  className="w-full text-left border rounded-xl px-4 py-4 font-medium transition"
+                  style={{
+                    backgroundColor: isSelected ? green : surface,
+                    borderColor: isSelected ? green : border,
+                    color: isSelected ? '#fff' : textPrimary,
+                  }}
                 >
-                  <span className="opacity-60 mr-3">{opt.key.toUpperCase()}.</span>
+                  <span className="mr-3 opacity-60">{opt.key.toUpperCase()}.</span>
                   {opt.text}
                 </button>
               )
             })}
           </div>
 
-          {/* Immediate feedback after selecting */}
+          {/* Immediate explanation feedback */}
           {revealAnswer && currentQuestion.explanation && (
-            <div className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 mb-6">
-              <p className="text-xs text-gray-500 mb-1">Explanation</p>
-              <p className="text-sm text-gray-300">{currentQuestion.explanation}</p>
+            <div
+              className="rounded-xl px-4 py-3 mb-6 border"
+              style={{ backgroundColor: surface, borderColor: border }}
+            >
+              <p className="text-xs mb-1 font-semibold" style={{ color: green }}>Explanation</p>
+              <p className="text-sm" style={{ color: '#CBD5E0' }}>{currentQuestion.explanation}</p>
             </div>
           )}
 
+          {/* Next button */}
           <button
             onClick={handleNext}
             disabled={!selectedAnswer || submitting}
-            className="w-full bg-emerald-400 text-black font-bold py-4 rounded-xl hover:bg-emerald-300 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full font-bold py-4 rounded-2xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ backgroundColor: amber, color: '#1B4332' }}
           >
-            {submitting ? 'Submitting...' : currentIndex + 1 === questions.length ? 'Finish Quiz' : 'Next Question →'}
+            {submitting
+              ? 'Submitting...'
+              : currentIndex + 1 === questions.length
+              ? 'Finish Quiz'
+              : 'Next Question →'}
           </button>
 
         </div>
@@ -261,17 +349,17 @@ export default function QuizPage() {
   if (phase === 'results') {
     const correct = results.filter((r) => r.is_correct).length
     return (
-      <main className="min-h-screen bg-gray-950 text-white flex flex-col px-4 py-8">
+      <main className="min-h-screen flex flex-col px-4 py-8" style={{ backgroundColor: appBg, color: textPrimary }}>
         <div className="max-w-lg mx-auto w-full">
-          <h1 className="text-2xl font-bold text-center mb-1">Session Complete</h1>
-          <p className="text-gray-400 text-center text-sm mb-8">
+          <h1 className="font-fraunces text-2xl font-black text-center mb-1">Session Complete</h1>
+          <p className="text-center text-sm mb-8" style={{ color: textMuted }}>
             {SKILL_ICONS[selectedSkill]} {SKILL_LABELS[selectedSkill]} · A1
           </p>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center mb-8">
-            <p className="text-5xl font-bold text-emerald-400 mb-1">{score}%</p>
-            <p className="text-gray-400 text-sm">{correct} of {results.length} correct</p>
-            <p className="text-xs text-gray-600 mt-2">
+          <div className="rounded-2xl p-6 text-center mb-8 border" style={{ backgroundColor: surface, borderColor: border }}>
+            <p className="text-5xl font-bold mb-1" style={{ color: amber }}>{score}%</p>
+            <p className="text-sm mb-2" style={{ color: textMuted }}>{correct} of {results.length} correct</p>
+            <p className="text-xs" style={{ color: green }}>
               {score >= 80 ? '🏆 Excellent work!' : score >= 60 ? '💪 Good progress!' : '📚 Keep practising!'}
             </p>
           </div>
@@ -280,27 +368,45 @@ export default function QuizPage() {
             {results.map((r, i) => (
               <div
                 key={r.question_id}
-                className={`rounded-xl border p-4 ${r.is_correct ? 'border-emerald-700 bg-emerald-900/20' : 'border-red-700 bg-red-900/20'}`}
+                className="rounded-xl border p-4"
+                style={{
+                  backgroundColor: surface,
+                  borderColor: r.is_correct ? '#276749' : '#7F1D1D',
+                }}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-500">Q{i + 1}</span>
-                  <span className={`text-xs font-bold ${r.is_correct ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <span className="text-xs" style={{ color: textMuted }}>Q{i + 1}</span>
+                  <span
+                    className="text-xs font-bold"
+                    style={{ color: r.is_correct ? green : '#FC8181' }}
+                  >
                     {r.is_correct ? '✓ Correct' : `✗ Correct: ${r.correct_answer.toUpperCase()}`}
                   </span>
                 </div>
-                <p className="text-sm text-gray-300">{r.explanation}</p>
+                <p className="text-sm" style={{ color: '#CBD5E0' }}>{r.explanation}</p>
               </div>
             ))}
           </div>
 
           <div className="space-y-3">
             <button
-              onClick={() => { setPhase('select'); setAnswers([]); setResults([]); setSelectedAnswer(null); setRevealAnswer(false) }}
-              className="w-full bg-emerald-400 text-black font-bold py-4 rounded-2xl hover:bg-emerald-300 transition"
+              onClick={() => {
+                setPhase('select')
+                setAnswers([])
+                setResults([])
+                setSelectedAnswer(null)
+                setRevealAnswer(false)
+              }}
+              className="w-full font-bold py-4 rounded-2xl transition"
+              style={{ backgroundColor: amber, color: '#1B4332' }}
             >
               Practice Again
             </button>
-            <Link href="/dashboard" className="block w-full text-center text-gray-400 py-3 hover:text-white transition">
+            <Link
+              href="/dashboard"
+              className="block w-full text-center py-3 transition text-sm"
+              style={{ color: textMuted }}
+            >
               Back to Dashboard
             </Link>
           </div>
