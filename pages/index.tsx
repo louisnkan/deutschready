@@ -245,12 +245,13 @@ export default function Home() {
           Weekly (₦1,500) and quarterly (₦11,000) plans coming soon
         </p>
       </section>
-
-      {/* FAQ */}
-      <section className="max-w-2xl mx-auto px-6 py-12">
-        <h2 className="font-fraunces text-3xl font-black text-center mb-10" style={{ color: '#1B4332' }}>
-          Frequently asked questions
-        </h2>
+{/* FAQ — Accordion */}
+<section className="max-w-2xl mx-auto px-6 py-12">
+  <h2 className="font-fraunces text-3xl font-black text-center mb-10" style={{ color: '#1B4332' }}>
+    Frequently asked questions
+  </h2>
+  <FAQAccordion />
+</section>
         <div className="space-y-4">
           {[
             {
@@ -284,16 +285,25 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-gray-200 mt-8">
-        <div className="max-w-4xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Logo size="sm" href="/" />
-          <div className="flex items-center gap-6 text-xs text-gray-400">
-            <Link href="/blog" className="hover:text-gray-600 transition">Blog</Link>
-            <Link href="/auth" className="hover:text-gray-600 transition">Sign in</Link>
-            <span>·</span>
-            <span style={{ fontSize: '10px', opacity: 0.4 }}>louis iv studio</span>
-          </div>
-        </div>
-      </footer>
+  <div className="max-w-4xl mx-auto px-6 py-8">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+      <Logo size="sm" href="/" />
+      <div className="flex items-center gap-6 text-xs text-gray-400">
+        <Link href="/blog" className="hover:text-gray-600 transition">Blog</Link>
+        <Link href="/contact" className="hover:text-gray-600 transition">Contact</Link>
+        <Link href="/auth" className="hover:text-gray-600 transition">Sign in</Link>
+      </div>
+    </div>
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p style={{ fontSize: '11px', opacity: 0.35 }} className="text-gray-500">
+        © 2026 Louis IV Studio · All rights reserved
+      </p>
+      <p style={{ fontSize: '11px', opacity: 0.35 }} className="text-gray-500">
+        Built for Nigerians preparing for German exams
+      </p>
+    </div>
+  </div>
+</footer>
 
     </main>
   )
