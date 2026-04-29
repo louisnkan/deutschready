@@ -3,6 +3,7 @@ import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import Logo from '../components/Logo'
 
 type SkillProgress = {
   skill: string
@@ -27,6 +28,7 @@ type Props = {
   skillProgress: SkillProgress[]
   lastSession: LastSession | null
   totalSessions: number
+  isPremium: boolean
 }
 
 const SKILL_LABELS: Record<string, string> = {
@@ -50,13 +52,14 @@ export default function Dashboard({
   skillProgress,
   lastSession,
   totalSessions,
+  isPremium,
 }: Props) {
   const router = useRouter()
   const supabase = useSupabaseClient()
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push('/auth')
+    router.push('/')
   }
 
   const skillMap = Object.fromEntries(skillProgress.map((s) => [s.skill, s]))
@@ -70,62 +73,90 @@ export default function Dashboard({
   }))
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white px-4 py-8">
-      <div className="max-w-lg mx-auto">
+    <main
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: '#0F1117', color: '#E8EAED' }}
+    >
+      {/* Nav */}
+      <nav
+        className="flex items-center justify-between px-4 py-4 border-b"
+        style={{ borderColor: '#1A1D27' }}
+      >
+        <Logo size="md" href="/" />
+        <button
+          onClick={handleSignOut}
+          className="text-xs font-medium transition"
+          style={{ color: '#6B7280' }}
+        >
+          Sign out
+        </button>
+      </nav>
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-xl font-bold">
-              Hey, {firstName} 👋
-            </h1>
-            <p className="text-gray-500 text-sm">A1 · German Exam Prep</p>
-          </div>
-          <button
-            onClick={handleSignOut}
-            className="text-gray-500 text-sm hover:text-gray-300 transition"
-          >
-            Sign out
-          </button>
+      <div className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
+
+        {/* Greeting */}
+        <div className="mb-6">
+          <h1 className="font-fraunces text-2xl font-black" style={{ color: '#E8EAED' }}>
+            Hey, {firstName} 👋
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: '#6B7280' }}>
+            A1 · German Exam Prep
+            {isPremium && (
+              <span
+                className="ml-2 text-xs font-bold px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: '#FFB703', color: '#1B4332' }}
+              >
+                Premium
+              </span>
+            )}
+          </p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
-            <p className="text-2xl font-bold text-emerald-400">{streakDays}</p>
-            <p className="text-gray-500 text-xs mt-1">
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="rounded-2xl p-4" style={{ backgroundColor: '#1A1D27' }}>
+            <p className="text-2xl font-bold" style={{ color: '#40916C' }}>{streakDays}</p>
+            <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
               {streakDays === 0 ? 'Start your streak 🔥' : `Day streak 🔥`}
             </p>
           </div>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
-            <p className="text-2xl font-bold text-emerald-400">{totalSessions}</p>
-            <p className="text-gray-500 text-xs mt-1">Sessions done</p>
+          <div className="rounded-2xl p-4" style={{ backgroundColor: '#1A1D27' }}>
+            <p className="text-2xl font-bold" style={{ color: '#40916C' }}>{totalSessions}</p>
+            <p className="text-xs mt-1" style={{ color: '#6B7280' }}>Sessions done</p>
           </div>
         </div>
 
         {/* Streak milestone */}
         {streakDays >= 3 && (
-          <div className="bg-emerald-900/20 border border-emerald-700 rounded-2xl p-4 mb-8 text-center">
-            <p className="text-emerald-400 font-semibold text-sm">
-              {streakDays >= 7 ? '🏆 7-day streak! You\'re unstoppable.' : `🔥 ${streakDays}-day streak! Keep it up.`}
+          <div
+            className="rounded-2xl p-4 mb-6 text-center border"
+            style={{ backgroundColor: '#1A1D27', borderColor: '#40916C' }}
+          >
+            <p className="text-sm font-semibold" style={{ color: '#40916C' }}>
+              {streakDays >= 7
+                ? '🏆 7-day streak! You\'re unstoppable.'
+                : `🔥 ${streakDays}-day streak! Keep it up.`}
             </p>
           </div>
         )}
 
         {/* Last session */}
         {lastSession && (
-          <div className="bg-gray-900 border border-emerald-900 rounded-2xl p-4 mb-8">
-            <p className="text-xs text-gray-500 mb-2">Last session</p>
+          <div
+            className="rounded-2xl p-4 mb-6 border"
+            style={{ backgroundColor: '#1A1D27', borderColor: '#2D3748' }}
+          >
+            <p className="text-xs mb-3" style={{ color: '#6B7280' }}>Last session</p>
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-semibold">
+                <p className="font-semibold" style={{ color: '#E8EAED' }}>
                   {SKILL_ICONS[lastSession.skill]} {SKILL_LABELS[lastSession.skill]}
                 </p>
-                <p className="text-gray-500 text-xs mt-0.5">
+                <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>
                   {lastSession.correct_answers}/{lastSession.total_questions} correct
                 </p>
               </div>
-              <p className="text-3xl font-bold text-emerald-400">
+              <p className="text-3xl font-bold" style={{ color: '#FFB703' }}>
                 {Math.round(lastSession.score_percentage)}%
               </p>
             </div>
@@ -133,33 +164,48 @@ export default function Dashboard({
         )}
 
         {/* Progress */}
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+        <h2
+          className="text-xs font-semibold uppercase tracking-wider mb-4"
+          style={{ color: '#6B7280' }}
+        >
           Your Progress
         </h2>
 
-        <div className="space-y-3 mb-8">
+        <div className="space-y-3 mb-6">
           {allSkillData.map((s) => {
             const accuracy = s.questions_attempted > 0
               ? Math.round((s.questions_correct / s.questions_attempted) * 100)
               : 0
             return (
-              <div key={s.skill} className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+              <div
+                key={s.skill}
+                className="rounded-2xl p-4 border"
+                style={{ backgroundColor: '#1A1D27', borderColor: '#2D3748' }}
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span>{SKILL_ICONS[s.skill]}</span>
-                    <span className="font-medium">{SKILL_LABELS[s.skill]}</span>
+                    <span className="font-medium text-sm" style={{ color: '#E8EAED' }}>
+                      {SKILL_LABELS[s.skill]}
+                    </span>
                   </div>
-                  <span className="text-emerald-400 font-bold text-sm">
+                  <span
+                    className="font-bold text-sm"
+                    style={{ color: s.best_score > 0 ? '#40916C' : '#6B7280' }}
+                  >
                     {s.best_score > 0 ? `Best: ${Math.round(s.best_score)}%` : 'Not started'}
                   </span>
                 </div>
-                <div className="w-full bg-gray-800 rounded-full h-1.5 mb-2">
+                <div
+                  className="w-full rounded-full h-1.5 mb-2"
+                  style={{ backgroundColor: '#2D3748' }}
+                >
                   <div
-                    className="bg-emerald-400 h-1.5 rounded-full transition-all"
-                    style={{ width: `${accuracy}%` }}
+                    className="h-1.5 rounded-full transition-all"
+                    style={{ width: `${accuracy}%`, backgroundColor: '#40916C' }}
                   />
                 </div>
-                <div className="flex justify-between text-xs text-gray-600">
+                <div className="flex justify-between text-xs" style={{ color: '#4B5563' }}>
                   <span>{s.questions_attempted} attempted</span>
                   <span>{accuracy}% accuracy</span>
                 </div>
@@ -168,14 +214,49 @@ export default function Dashboard({
           })}
         </div>
 
+        {/* Premium upsell for free users */}
+        {!isPremium && (
+          <div
+            className="rounded-2xl p-4 mb-6 border text-center"
+            style={{ backgroundColor: '#1A1D27', borderColor: '#FFB703' }}
+          >
+            <p className="font-semibold text-sm mb-1" style={{ color: '#FFB703' }}>
+              Upgrade to Premium
+            </p>
+            <p className="text-xs mb-3" style={{ color: '#6B7280' }}>
+              Unlimited questions, AI explanations, full analytics. ₦4,500/month.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-block font-bold text-sm px-5 py-2 rounded-xl transition"
+              style={{ backgroundColor: '#FFB703', color: '#1B4332' }}
+            >
+              Get Premium →
+            </Link>
+          </div>
+        )}
+
+        {/* CTA */}
         <Link
           href="/quiz"
-          className="block w-full bg-emerald-400 text-black font-bold py-4 rounded-2xl text-center hover:bg-emerald-300 transition text-lg"
+          className="block w-full font-bold py-4 rounded-2xl text-center transition text-base"
+          style={{ backgroundColor: '#40916C', color: '#fff' }}
         >
           Start Practising →
         </Link>
 
       </div>
+
+      {/* Footer */}
+      <footer
+        className="border-t px-4 py-4 text-center"
+        style={{ borderColor: '#1A1D27' }}
+      >
+        <p style={{ fontSize: '10px', opacity: 0.25, color: '#E8EAED' }}>
+          © 2026 Louis IV Studio · All rights reserved
+        </p>
+      </footer>
+
     </main>
   )
 }
@@ -191,12 +272,36 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const userId = session.user.id
   const today = new Date().toISOString().split('T')[0]
 
-  // Fetch profile
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, streak_days, last_practice_date')
-    .eq('id', userId)
-    .single()
+  // Run all queries in parallel — 3 queries max
+  const [profileRes, skillRes, sessionRes, countRes] = await Promise.allSettled([
+    supabase
+      .from('profiles')
+      .select('full_name, streak_days, last_practice_date, is_premium')
+      .eq('id', userId)
+      .single(),
+    supabase
+      .from('skill_progress')
+      .select('skill, questions_attempted, questions_correct, best_score, last_practiced_at')
+      .eq('user_id', userId)
+      .eq('level', 'a1'),
+    supabase
+      .from('practice_sessions')
+      .select('skill, score_percentage, correct_answers, total_questions, completed_at')
+      .eq('user_id', userId)
+      .not('completed_at', 'is', null)
+      .order('completed_at', { ascending: false })
+      .limit(1),
+    supabase
+      .from('practice_sessions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .not('completed_at', 'is', null),
+  ])
+
+  const profile = profileRes.status === 'fulfilled' ? profileRes.value.data : null
+  const skillProgress = skillRes.status === 'fulfilled' ? skillRes.value.data ?? [] : []
+  const lastSession = sessionRes.status === 'fulfilled' ? sessionRes.value.data?.[0] ?? null : null
+  const totalSessions = countRes.status === 'fulfilled' ? countRes.value.count ?? 0 : 0
 
   // Streak logic
   let streakDays = profile?.streak_days ?? 0
@@ -208,16 +313,14 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     const yesterdayStr = yesterday.toISOString().split('T')[0]
 
     if (lastDate === today) {
-      // Already practiced today — streak unchanged
+      // Already practiced today — unchanged
     } else if (lastDate === yesterdayStr) {
-      // Practiced yesterday — increment streak
       streakDays = streakDays + 1
       await supabase
         .from('profiles')
         .update({ streak_days: streakDays, last_practice_date: today })
         .eq('id', userId)
     } else {
-      // Gap — reset streak
       streakDays = 0
       await supabase
         .from('profiles')
@@ -226,43 +329,22 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     }
   }
 
-  // Extract first name
+  // First name only
   const fullName = profile?.full_name ?? ''
   const firstName = fullName
-    ? fullName.split(' ')[0].charAt(0).toUpperCase() + fullName.split(' ')[0].slice(1).toLowerCase()
+    ? fullName.split(' ')[0].charAt(0).toUpperCase() +
+      fullName.split(' ')[0].slice(1).toLowerCase()
     : session.user.email?.split('@')[0] ?? 'there'
-
-  // Fetch skill progress
-  const { data: skillProgress } = await supabase
-    .from('skill_progress')
-    .select('skill, questions_attempted, questions_correct, best_score, last_practiced_at')
-    .eq('user_id', userId)
-    .eq('level', 'a1')
-
-  // Fetch last session
-  const { data: sessions } = await supabase
-    .from('practice_sessions')
-    .select('skill, score_percentage, correct_answers, total_questions, completed_at')
-    .eq('user_id', userId)
-    .not('completed_at', 'is', null)
-    .order('completed_at', { ascending: false })
-    .limit(1)
-
-  // Fetch total sessions
-  const { count: totalSessions } = await supabase
-    .from('practice_sessions')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .not('completed_at', 'is', null)
 
   return {
     props: {
       email: session.user.email ?? '',
       firstName,
       streakDays,
-      skillProgress: skillProgress ?? [],
-      lastSession: sessions?.[0] ?? null,
-      totalSessions: totalSessions ?? 0,
+      skillProgress,
+      lastSession,
+      totalSessions,
+      isPremium: profile?.is_premium ?? false,
     },
   }
 }
