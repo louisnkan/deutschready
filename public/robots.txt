@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
 
+# Block app interior — no SEO value, requires auth
+Disallow: /dashboard
+Disallow: /quiz
+Disallow: /api/
+
 Sitemap: https://deutschready.xyz/sitemap.xml
