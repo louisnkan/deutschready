@@ -6,25 +6,45 @@ export default function TelcA1Article() {
   return (
     <>
       <Head>
-        <title>How to Pass the TELC A1 German Exam in Nigeria (2026 Guide) — DeutschReady</title>
-        <meta name="description" content="Complete guide to passing TELC A1 German exam in Nigeria. 30-day study plan, exam format breakdown, common mistakes, and free practice questions." />
-        <meta property="og:title" content="How to Pass the TELC A1 German Exam in Nigeria (2026 Guide)" />
-        <meta property="og:description" content="Complete guide to passing TELC A1 German exam in Nigeria. 30-day study plan, exam format breakdown, and common mistakes to avoid." />
-        <meta property="og:type" content="article" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Article",
-              "headline": "How to Pass the TELC A1 German Exam in Nigeria (2026 Guide)",
-              "description": "Complete guide to passing TELC A1 German exam in Nigeria",
-              "author": { "@type": "Organization", "name": "DeutschReady" },
-              "publisher": { "@type": "Organization", "name": "DeutschReady" },
-            })
-          }}
-        />
-      </Head>
+  <title>How to Pass the TELC A1 German Exam in Nigeria (2026 Guide) — DeutschReady</title>
+  <meta
+    name="description"
+    content="Complete guide to passing TELC A1 German exam in Nigeria. 30-day study plan, exam format breakdown, common mistakes Nigerian candidates make, and how to avoid them."
+  />
+  <meta
+    property="og:title"
+    content="How to Pass the TELC A1 German Exam in Nigeria (2026 Guide)"
+  />
+  <meta
+    property="og:description"
+    content="30-day study plan, exam format breakdown, and the 5 mistakes Nigerian candidates make. Free practice questions included."
+  />
+  <meta property="og:url" content="https://deutschready.xyz/blog/how-to-prepare-telc-a1-nigeria" />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="https://deutschready.xyz/og-image.png" />
+  <meta name="keywords" content="TELC A1 Nigeria, German exam prep Africa, Goethe A1 Nigeria, learn German Nigeria, TELC exam preparation" />
+  <link rel="canonical" href="https://deutschready.xyz/blog/how-to-prepare-telc-a1-nigeria" />
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "How to Pass the TELC A1 German Exam in Nigeria (2026 Guide)",
+        "description": "Complete guide to passing TELC A1 German exam in Nigeria with 30-day study plan",
+        "author": { "@type": "Organization", "name": "DeutschReady" },
+        "publisher": {
+          "@type": "Organization",
+          "name": "DeutschReady",
+          "url": "https://deutschready.xyz"
+        },
+        "datePublished": "2026-04-20",
+        "dateModified": "2026-04-28",
+        "mainEntityOfPage": "https://deutschready.xyz/blog/how-to-prepare-telc-a1-nigeria"
+      })
+    }}
+  />
+</Head>
 
       <main style={{ backgroundColor: '#F8F9FA' }} className="min-h-screen">
         <nav className="border-b border-gray-200">
