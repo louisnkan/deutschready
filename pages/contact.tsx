@@ -32,9 +32,10 @@ export default function Contact() {
   return (
     <>
       <Head>
-        <title>Contact — DeutschReady</title>
-        <meta name="description" content="Get in touch with the DeutschReady team." />
-      </Head>
+  <title>Contact — DeutschReady</title>
+  <meta name="description" content="Get in touch with the DeutschReady team. Questions about Premium, the exam, or your account." />
+  <meta name="robots" content="noindex" />
+</Head>
       <main style={{ backgroundColor: '#F8F9FA' }} className="min-h-screen flex flex-col">
         <nav className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <Logo size="md" href="/" />
