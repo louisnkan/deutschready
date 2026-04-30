@@ -6,9 +6,19 @@ export default function BlogIndex() {
   return (
     <>
       <Head>
-        <title>Blog — DeutschReady | German Exam Prep for Nigerians</title>
-        <meta name="description" content="Guides and tips for passing TELC A1 and Goethe German exams in Nigeria and Africa." />
-      </Head>
+  <title>Blog — DeutschReady | German Exam Guides for Nigerians</title>
+  <meta
+    name="description"
+    content="Study guides and exam tips for passing TELC A1 and Goethe A1 German exams in Nigeria and Africa. Written for African candidates."
+  />
+  <meta property="og:title" content="Blog — DeutschReady | German Exam Guides for Nigerians" />
+  <meta
+    property="og:description"
+    content="Study guides and exam tips for passing TELC A1 and Goethe A1 German exams in Nigeria and Africa."
+  />
+  <meta property="og:url" content="https://deutschready.xyz/blog" />
+  <link rel="canonical" href="https://deutschready.xyz/blog" />
+</Head>
       <main style={{ backgroundColor: '#F8F9FA' }} className="min-h-screen">
         <nav className="border-b border-gray-200">
           <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
